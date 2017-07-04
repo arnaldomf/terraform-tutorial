@@ -25,6 +25,8 @@ resource "aws_autoscaling_group" "example" {
 	max_size = 1
 	# data -> datasource
 	availability_zones = ["${data.aws_availability_zones.available.names}"]
+	load_balancers = ["${aws_elb.example.name}"]
+	health_check_type = "ELB"
 
 	tag {
 		key = "Name"
@@ -45,5 +47,27 @@ resource "aws_security_group" "instance" {
 
 	lifecycle {
 		create_before_destroy = true
+	}
+}
+
+resource "aws_elb" "example" {
+	name = "terraform-asg-name"
+	availability_zones = ["${data.aws_availability_zones.available.names}"]
+	listener = {
+		lb_port = 80
+		lb_protocol = "http"
+		instance_port = "${var.server_port}"
+		instance_protocol = "http"
+	}
+}
+
+resource "aws_security_group" "elb" {
+	name = "terraform-example-elb"
+	
+	ingress {
+		from_port = 80
+		to_port   = 80
+		protocol  = "tcp"
+		cidr_blocks = ["0.0.0.0/0"]
 	}
 }
