@@ -21,3 +21,9 @@ data "terraform_remote_state" "vpc" {
 	}
 }
 
+data "template_file" "user-data" {
+	template = "${file("user-data.sh")}"
+	vars {
+		server_port = "${var.server_port}"
+	}
+}
